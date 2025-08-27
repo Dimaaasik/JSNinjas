@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 import { getHero, updateHero } from "../api/superheroes";
 
 export default function EditHero() {
@@ -39,6 +40,10 @@ export default function EditHero() {
         onSuccess: () => {
             queryClient.invalidateQueries(["hero", id]);
             navigate(`/hero/${id}`);
+            toast.success("Hero updated successfully!");
+        },
+        onError: () => {
+            toast.error("Error updating hero.");
         }
     });
 
@@ -50,10 +55,16 @@ export default function EditHero() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        for (const [key, value] of Object.entries(formData)) {
+            if (!value.trim()) {
+                toast.error(`Field "${key}" cannot be empty`);
+                return;
+            }
+        }
+
         mutation.mutate(formData);
     };
-
-
 
     return (
         <div className="max-w-xl mx-auto p-6">
@@ -102,7 +113,6 @@ export default function EditHero() {
                 >
                     {mutation.isLoading ? "Saving..." : "Save Changes"}
                 </button>
-                {mutation.isError && <p className="text-red-500">Error updating hero.</p>}
             </form>
         </div>
     );
